@@ -111,7 +111,6 @@
         %endfor
 
         <div class="act_as_table list_table" style="margin-top: 20px;">
-
             <div class="act_as_thead">
                 <div class="act_as_row labels">
                     ## code
@@ -127,6 +126,8 @@
                         <div class="act_as_cell amount" style="width: 30px;">${_('Debit')}</div>
                         ## credit
                         <div class="act_as_cell amount" style="width: 30px;">${_('Credit')}</div>
+                        ## balance period
+                        <div class="act_as_cell amount" style="width: 30px;">${_('Period Balance')}</div>
                     %endif
                     ## balance
                     <div class="act_as_cell amount" style="width: 30px;">
@@ -191,6 +192,8 @@
                             <div class="act_as_cell amount">${formatLang(debit_accounts[current_account.id]) | amount}</div>
                             ## credit
                             <div class="act_as_cell amount">${formatLang(credit_accounts[current_account.id]) | amount}</div>
+                            ## balance period
+                            <div class="act_as_cell amount">${formatLang(period_balance_accounts[current_account.id]) | amount}</div>
                         %endif
                         ## balance
                         <div class="act_as_cell amount">${formatLang(balance_accounts[current_account.id]) | amount}</div>
@@ -212,6 +215,106 @@
                         %endif
                     </div>
                 %endfor
+            </div>
+        </div>
+
+        <div class="act_as_table list_table" style="width: 100%;margin-top: 50px;">
+            <div class="act_as_tbody">
+                <div class="act_as_row">
+                    <div class="act_as_cell" style="width:50%;">
+                        <div class="act_as_table" style="width: 80%;margin:0 auto;">
+                            <div class="act_as_thead">
+                                <div style="width:100%;font-weight:bold;">
+                                    ${_('Period')}
+                                </div>
+                                <div class="act_as_row labels">
+                                    <div class="act_as_cell first_column">${_('Class')}</div>
+                                    <div class="act_as_cell amount">${_('Amount')}</div>
+                                </div>
+                            </div>
+                            <div class="act_as_tbody">
+                                %for code in range(1,8):
+                                        <div class="act_as_row lines">
+                                            <div class="act_as_cell first_column">
+                                            ${code}
+                                            </div>
+                                            <div class="act_as_cell amount">
+                                            ${period_balance_accounts.get(level_1_account_id_by_codes.get(str(code), -1), "")}
+                                            </div>
+                                        </div>
+                                %endfor
+                                <div class="act_as_row lines">
+                                    <div class="act_as_cell first_column">
+                                        Solde 1 - 5
+                                    </div>
+                                    <div class="act_as_cell amount">
+                                        ${period_balance_accounts.get(level_1_account_id_by_codes.get(str(1), -1), 0) + \
+                                        period_balance_accounts.get(level_1_account_id_by_codes.get(str(2), -1), 0) + \
+                                        period_balance_accounts.get(level_1_account_id_by_codes.get(str(3), -1), 0) + \
+                                        period_balance_accounts.get(level_1_account_id_by_codes.get(str(4), -1), 0) + \
+                                        period_balance_accounts.get(level_1_account_id_by_codes.get(str(5), -1), 0)}
+                                    </div>
+                                </div>
+                                <div class="act_as_row lines">
+                                    <div class="act_as_cell first_column">
+                                        Solde 6 - 7
+                                    </div>
+                                    <div class="act_as_cell amount">
+                                        ${period_balance_accounts.get(level_1_account_id_by_codes.get(str(6), -1), 0) + \
+                                        period_balance_accounts.get(level_1_account_id_by_codes.get(str(7), -1), 0)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="act_as_cell" style="width:50%;">
+
+                        <div class="act_as_table" style="width: 80%;margin:0 auto;">
+                            <div class="act_as_thead">
+                                <div style="width:100%;font-weight:bold;">
+                                    ${_('Cumulated')}
+                                </div>
+                                <div class="act_as_row labels">
+                                    <div class="act_as_cell first_column">${_('Class')}</div>
+                                    <div class="act_as_cell amount">${_('Cumulated Amount')}</div>
+                                </div>
+                            </div>
+                            <div class="act_as_tbody">
+                                %for code in range(1,8):
+                                        <div class="act_as_row lines">
+                                            <div class="act_as_cell first_column">
+                                            ${code}
+                                            </div>
+                                            <div class="act_as_cell amount">
+                                            ${balance_accounts.get(level_1_account_id_by_codes.get(str(code), -1), "")}
+                                            </div>
+                                        </div>
+                                %endfor
+                                <div class="act_as_row lines">
+                                    <div class="act_as_cell first_column">
+                                        Solde 1 - 5
+                                    </div>
+                                    <div class="act_as_cell amount">
+                                        ${balance_accounts.get(level_1_account_id_by_codes.get(str(1), -1), 0) + \
+                                        balance_accounts.get(level_1_account_id_by_codes.get(str(2), -1), 0) + \
+                                        balance_accounts.get(level_1_account_id_by_codes.get(str(3), -1), 0) + \
+                                        balance_accounts.get(level_1_account_id_by_codes.get(str(4), -1), 0) + \
+                                        balance_accounts.get(level_1_account_id_by_codes.get(str(5), -1), 0)}
+                                    </div>
+                                </div>
+                                <div class="act_as_row lines">
+                                    <div class="act_as_cell first_column">
+                                        Solde 6 - 7
+                                    </div>
+                                    <div class="act_as_cell amount">
+                                        ${balance_accounts.get(level_1_account_id_by_codes.get(str(6), -1), 0) + \
+                                        balance_accounts.get(level_1_account_id_by_codes.get(str(7), -1), 0)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </body>

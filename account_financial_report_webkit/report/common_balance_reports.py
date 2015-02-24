@@ -111,6 +111,7 @@ class CommonBalanceReportHeaderWebkit(CommonReportHeaderWebkit):
                     account['init_balance'] = top_init_balance
                 else:
                     account.update(init_balance[account['id']])
+                account['period_balance'] = account['balance']
                 account['balance'] = account['init_balance'] + \
                     account['debit'] - account['credit']
             accounts_by_id[account['id']] = account
@@ -286,10 +287,14 @@ class CommonBalanceReportHeaderWebkit(CommonReportHeaderWebkit):
         debit_accounts = dict.fromkeys(account_ids, False)
         credit_accounts = dict.fromkeys(account_ids, False)
         balance_accounts = dict.fromkeys(account_ids, False)
+        period_balance_accounts = dict.fromkeys(account_ids, False)
+        level_1_account_id_by_codes = {}
 
         for account in objects:
             if not account.parent_id:  # hide top level account
                 continue
+            if account.level == 1:
+                level_1_account_id_by_codes[account.code] = account.id
             if account.type == 'consolidation':
                 to_display_accounts.update(
                     dict([(a.id, False) for a in account.child_consol_ids]))
@@ -302,6 +307,8 @@ class CommonBalanceReportHeaderWebkit(CommonReportHeaderWebkit):
                 accounts_by_ids[account.id]['credit']
             balance_accounts[account.id] = \
                 accounts_by_ids[account.id]['balance']
+            period_balance_accounts[account.id] = \
+                accounts_by_ids[account.id]['period_balance']
             init_balance_accounts[account.id] =  \
                 accounts_by_ids[account.id].get('init_balance', 0.0)
 
@@ -350,6 +357,8 @@ class CommonBalanceReportHeaderWebkit(CommonReportHeaderWebkit):
             'debit_accounts': debit_accounts,
             'credit_accounts': credit_accounts,
             'balance_accounts': balance_accounts,
+            'period_balance_accounts': period_balance_accounts,
+            'level_1_account_id_by_codes': level_1_account_id_by_codes,
         }
 
         return objects, new_ids, context_report_values
