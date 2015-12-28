@@ -125,17 +125,17 @@
               ## move reference
               <div class="act_as_cell"></div>
               ## label
-              <div class="act_as_cell">${_('Cumulated Balance on Partner')}</div>
+              <div class="act_as_cell"><strong>${_('Cumulated Balance on Partner')}</strong></div>
               ## reconcile
               <div class="act_as_cell"></div>
               ## maturity date
               <div class="act_as_cell"></div>
               ## debit
-              <div class="act_as_cell amount">${formatLang(total_debit) | amount }</div>
+              <div class="act_as_cell amount"><strong>${formatLang(total_debit) | amount }</strong></div>
               ## credit
-              <div class="act_as_cell amount">${formatLang(total_credit) | amount }</div>
+              <div class="act_as_cell amount"><strong>${formatLang(total_credit) | amount }</strong></div>
               ## balance cumulated
-              <div class="act_as_cell amount" style="padding-right: 1px;">${formatLang(cumul_balance) | amount }</div>
+              <div class="act_as_cell amount" style="padding-right: 1px;"><strong>${formatLang(cumul_balance) | amount }</strong></div>
               %if amount_currency(data):
                   %if account.currency_id:
                       ## currency balance
