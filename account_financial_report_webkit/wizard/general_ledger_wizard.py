@@ -54,7 +54,10 @@ class AccountReportGeneralLedgerWizard(orm.TransientModel):
                     print all accounts."""),
         'centralize': fields.boolean(
             'Activate Centralization',
-            help='Uncheck to display all the details of centralized accounts.')
+            help='Uncheck to display all the details of centralized accounts.'),
+        'only_unreconciled': fields.boolean(
+            'Only Unreconciled',
+            help='Show only unreconciled entries.')
     }
     _defaults = {
         'amount_currency': False,
@@ -85,7 +88,8 @@ class AccountReportGeneralLedgerWizard(orm.TransientModel):
                          ['amount_currency',
                           'display_account',
                           'account_ids',
-                          'centralize'],
+                          'centralize',
+                          'only_unreconciled'],
                          context=context)[0]
         data['form'].update(vals)
         return data

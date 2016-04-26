@@ -451,6 +451,7 @@ class CommonReportHeaderWebkit(common_report_header):
             ('period_id', 'in', periods), ('account_id', '=', account_id)]
         if target_move == 'posted':
             search += [('move_id.state', '=', 'posted')]
+        search += [('reconcile_id','=',False), ('account_id.reconcile','=',True)]
         return move_line_obj.search(self.cursor, self.uid, search)
 
     def _get_move_ids_from_dates(self, account_id, date_start, date_stop,

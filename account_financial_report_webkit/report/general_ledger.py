@@ -87,6 +87,7 @@ class GeneralLedgerWebkit(report_sxw.rml_parse, CommonReportHeaderWebkit):
         start_date = self._get_form_param('date_from', data)
         stop_date = self._get_form_param('date_to', data)
         do_centralize = self._get_form_param('centralize', data)
+        only_unreconciled = self._get_form_param('only_unreconciled', data)
         start_period = self.get_start_period_br(data)
         stop_period = self.get_end_period_br(data)
         fiscalyear = self.get_fiscalyear_br(data)
@@ -118,7 +119,7 @@ class GeneralLedgerWebkit(report_sxw.rml_parse, CommonReportHeaderWebkit):
 
         ledger_lines_memoizer = self._compute_account_ledger_lines(
             accounts, init_balance_memoizer, main_filter, target_move, start,
-            stop)
+            stop, only_unreconciled)
         objects = self.pool.get('account.account').browse(self.cursor,
                                                           self.uid,
                                                           accounts)
@@ -146,6 +147,7 @@ class GeneralLedgerWebkit(report_sxw.rml_parse, CommonReportHeaderWebkit):
             'initial_balance_mode': initial_balance_mode,
             'init_balance': init_balance,
             'ledger_lines': ledger_lines,
+            'only_unreconciled': only_unreconciled,
         })
 
         return super(GeneralLedgerWebkit, self).set_context(
@@ -207,13 +209,70 @@ class GeneralLedgerWebkit(report_sxw.rml_parse, CommonReportHeaderWebkit):
 
         return centralized_lines
 
+    def _get_ledger_move_ids_from_periods(self, account_id, period_start, period_stop,
+                                   target_move, only_unreconciled):
+        move_line_obj = self.pool.get('account.move.line')
+        period_obj = self.pool.get('account.period')
+        periods = period_obj.build_ctx_periods(
+            self.cursor, self.uid, period_start.id, period_stop.id)
+        if not periods:
+            return []
+        search = [
+            ('period_id', 'in', periods), ('account_id', '=', account_id)]
+        if target_move == 'posted':
+            search += [('move_id.state', '=', 'posted')]
+        if only_unreconciled:
+            search += [('reconcile_id','=',False), ('account_id.reconcile','=',True)]
+        return move_line_obj.search(self.cursor, self.uid, search)
+
+    def _get_ledger_move_ids_from_dates(self, account_id, date_start, date_stop,
+                                 target_move, only_unreconciled, mode='include_opening'):
+        # TODO imporve perfomance by setting opening period as a property
+        move_line_obj = self.pool.get('account.move.line')
+        search_period = [('date', '>=', date_start),
+                         ('date', '<=', date_stop),
+                         ('account_id', '=', account_id)]
+
+        # actually not used because OpenERP itself always include the opening
+        # when we get the periods from january to december
+        if mode == 'exclude_opening':
+            opening = self._get_opening_periods()
+            if opening:
+                search_period += ['period_id', 'not in', opening]
+
+        if target_move == 'posted':
+            search_period += [('move_id.state', '=', 'posted')]
+
+        if only_unreconciled:
+            search += [('reconcile_id','=',False), ('account_id.reconcile','=',True)]
+        return move_line_obj.search(self.cursor, self.uid, search_period)
+
+    def get_ledger_move_lines_ids(self, account_id, main_filter, start, stop,
+                           target_move, only_unreconciled, mode='include_opening'):
+        """Get account move lines base on form data"""
+        if mode not in ('include_opening', 'exclude_opening'):
+            raise osv.except_osv(
+                _('Invalid query mode'),
+                _('Must be in include_opening, exclude_opening'))
+
+        if main_filter in ('filter_period', 'filter_no'):
+            return self._get_ledger_move_ids_from_periods(account_id, start, stop,
+                                                   target_move, only_unreconciled)
+
+        elif main_filter == 'filter_date':
+            return self._get_ledger_move_ids_from_dates(account_id, start, stop,
+                                                 target_move, only_unreconciled)
+        else:
+            raise osv.except_osv(
+                _('No valid filter'), _('Please set a valid time filter'))
+
     def _compute_account_ledger_lines(self, accounts_ids,
                                       init_balance_memoizer, main_filter,
-                                      target_move, start, stop):
+                                      target_move, start, stop, only_unreconciled):
         res = {}
         for acc_id in accounts_ids:
-            move_line_ids = self.get_move_lines_ids(
-                acc_id, main_filter, start, stop, target_move)
+            move_line_ids = self.get_ledger_move_lines_ids(
+                acc_id, main_filter, start, stop, target_move, only_unreconciled)
             if not move_line_ids:
                 res[acc_id] = []
                 continue
