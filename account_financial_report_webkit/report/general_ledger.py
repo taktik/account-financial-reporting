@@ -244,7 +244,7 @@ class GeneralLedgerWebkit(report_sxw.rml_parse, CommonReportHeaderWebkit):
             search_period += [('move_id.state', '=', 'posted')]
 
         if only_unreconciled:
-            search += [('reconcile_id','=',False), ('account_id.reconcile','=',True)]
+            search_period += [('reconcile_id','=',False), ('account_id.reconcile','=',True)]
         return move_line_obj.search(self.cursor, self.uid, search_period)
 
     def get_ledger_move_lines_ids(self, account_id, main_filter, start, stop,
