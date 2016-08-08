@@ -451,12 +451,12 @@ class CommonReportHeaderWebkit(common_report_header):
                 # is not included in the period selection!
                 if pnl_periods_ids and not opening_period_selected:
                     res[acc.id] = self._compute_init_balance(
-                        acc.id, pnl_periods_ids, target_move)
+                        acc.id, pnl_periods_ids, target_move=target_move)
             else:
                 res[acc.id] = self._compute_init_balance(
                     acc.id,
                     bs_period_ids,
-                    target_move
+                    target_move=target_move
                 )
         return res
 
