@@ -76,7 +76,7 @@ class CommonBalanceReportHeaderWebkit(CommonReportHeaderWebkit):
             init_balance = self._read_opening_balance(account_ids, start)
         elif initial_balance_mode:
             init_balance = self._compute_initial_balances(
-                account_ids, start, fiscalyear)
+                account_ids, start, fiscalyear, target_move)
 
         ctx = context.copy()
         ctx.update({'state': target_move,

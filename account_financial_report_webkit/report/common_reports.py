@@ -356,7 +356,7 @@ class CommonReportHeaderWebkit(common_report_header):
     ###############################
 
     def _compute_init_balance(self, account_id=None, period_ids=None,
-                              mode='computed', default_values=False):
+                              mode='computed', default_values=False, target_move=False):
         if not isinstance(period_ids, list):
             period_ids = [period_ids]
         res = {}
@@ -365,15 +365,35 @@ class CommonReportHeaderWebkit(common_report_header):
             if not account_id or not period_ids:
                 raise Exception('Missing account or period_ids')
             try:
-                self.cursor.execute("SELECT sum(debit) AS debit, "
-                                    " sum(credit) AS credit, "
-                                    " sum(debit)-sum(credit) AS balance, "
-                                    " sum(amount_currency) AS curr_balance"
-                                    " FROM account_move_line"
-                                    " WHERE period_id in %s"
-                                    " AND account_id = %s",
-                                    (tuple(period_ids), account_id))
-                res = self.cursor.dictfetchone()
+                if target_move == 'posted':
+                    account_move_ids = self.pool.get('account.move').search(
+                        self.cursor,
+                        self.uid,
+                        [('state', '=', target_move)]
+                    )
+                    self.cursor.execute("SELECT sum(debit) AS debit, "
+                                        " sum(credit) AS credit, "
+                                        " sum(debit)-sum(credit) AS balance, "
+                                        " sum(amount_currency) AS curr_balance"
+                                        " FROM account_move_line"
+                                        " WHERE period_id in %s"
+                                        " AND account_id = %s"
+                                        " AND move_id in %s",
+                                        (tuple(period_ids),
+                                         account_id,
+                                         tuple(account_move_ids))
+                                        )
+                    res = self.cursor.dictfetchone()
+                else:
+                    self.cursor.execute("SELECT sum(debit) AS debit, "
+                                        " sum(credit) AS credit, "
+                                        " sum(debit)-sum(credit) AS balance, "
+                                        " sum(amount_currency) AS curr_balance"
+                                        " FROM account_move_line"
+                                        " WHERE period_id in %s"
+                                        " AND account_id = %s",
+                                        (tuple(period_ids), account_id))
+                    res = self.cursor.dictfetchone()
 
             except Exception:
                 self.cursor.rollback()
@@ -403,7 +423,7 @@ class CommonReportHeaderWebkit(common_report_header):
                 account_id, opening_period_selected, mode='read')
         return res
 
-    def _compute_initial_balances(self, account_ids, start_period, fiscalyear):
+    def _compute_initial_balances(self, account_ids, start_period, fiscalyear, target_move=False):
         """We compute initial balance.
         If form is filtered by date all initial balance are equal to 0
         This function will sum pear and apple in currency amount if account as
@@ -431,9 +451,13 @@ class CommonReportHeaderWebkit(common_report_header):
                 # is not included in the period selection!
                 if pnl_periods_ids and not opening_period_selected:
                     res[acc.id] = self._compute_init_balance(
-                        acc.id, pnl_periods_ids)
+                        acc.id, pnl_periods_ids, target_move)
             else:
-                res[acc.id] = self._compute_init_balance(acc.id, bs_period_ids)
+                res[acc.id] = self._compute_init_balance(
+                    acc.id,
+                    bs_period_ids,
+                    target_move
+                )
         return res
 
     ################################################
