@@ -366,11 +366,6 @@ class CommonReportHeaderWebkit(common_report_header):
                 raise Exception('Missing account or period_ids')
             try:
                 if target_move == 'posted':
-                    account_move_ids = self.pool.get('account.move').search(
-                        self.cursor,
-                        self.uid,
-                        [('state', '=', target_move)]
-                    )
                     self.cursor.execute("SELECT sum(debit) AS debit, "
                                         " sum(credit) AS credit, "
                                         " sum(debit)-sum(credit) AS balance, "
@@ -378,10 +373,12 @@ class CommonReportHeaderWebkit(common_report_header):
                                         " FROM account_move_line"
                                         " WHERE period_id in %s"
                                         " AND account_id = %s"
-                                        " AND move_id in %s",
+                                        " AND move_id in ("
+                                        "SELECT id "
+                                        "FROM account_move "
+                                        "WHERE state = 'posted')",
                                         (tuple(period_ids),
-                                         account_id,
-                                         tuple(account_move_ids))
+                                         account_id)
                                         )
                     res = self.cursor.dictfetchone()
                 else:
